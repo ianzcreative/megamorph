@@ -65,7 +65,7 @@ This table highlights how Megamorph reduces technical debt and accelerates itera
 
 ### 1. Configure Repository
 
-Add the **TapTable** private repository to your `composer.json` file:
+Add the **Megamorph** private repository to your `composer.json` file:
 
 ```json
 "repositories": [
@@ -84,13 +84,22 @@ Before installing, authenticate your environment using the license key provided 
 composer config http-basic.megamorph.creator.ianstudios.id license YOUR_LICENSE_KEY
 ```
 
-### 3. Run the Installer
+### 3. Retrieve Package
+
+Download the package via Composer. This will pull the latest stable version from our private registry:
+
+```bash
+composer require ianstudios/megamorph
+```
+
+### 4. Run the Installer
+This command prepares your application for Megamorph. It will publish the configuration file `(config/megamorph.php)` so you can define your drivers and settings. It also publishes the database migrations required to create the tables for storing API audit logs
 
 ```bash
 php artisan megamorph:install
 ```
 
-### 4. Register the Plugin 
+### 5. Register the Plugin 
 
 In your `app/Providers/AdminPanelProvider.php`:  
 ```php
@@ -136,6 +145,7 @@ Once a provider and action are configured in the Filament Dashboard, you can tri
 
 ```bash
 curl -X POST https://api.yourdomain.com/megamorph/api/stripe/create-charge \
+     -H "Authorization: Bearer [Your Inbound Access Token]" \
      -H "Content-Type: application/json" \
      -d '{
            "user_id": 45,
@@ -327,7 +337,7 @@ The pre-built Relation Manager is optimized for enterprise auditing and includes
 
 ---
 
-### 🎨 Customizing the Experience
+### Customizing the Experience
 
 #### Direct "Replay" Feature
 
@@ -349,7 +359,7 @@ You can control who sees these logs by modifying your Filament Shield or Policy 
 
 ---
 
-### 💎 Key Enterprise Benefits
+### Key Enterprise Benefits
 
 | Feature | Description |
 | --- | --- |
@@ -387,6 +397,44 @@ if ($response->failed()) {
 ```
 ---
 
+## 🪝 Webhooks
+
+Megamorph provides a streamlined way to handle incoming asynchronous webhooks from your third-party providers. Instead of creating scattered controllers for each service, Megamorph routes all webhooks through a unified handler that automatically determines the correct driver, verifies signatures, and dispatches standardized events.
+
+### The Concept
+
+Webhooks in Megamorph are handled via a **single entry point** that delegates processing to the active driver.
+
+The flow is as follows:
+
+1. **Receive**: The endpoint receives the `POST` request.
+2. **Identify**: The driver is identified via the URL segment.
+3. **Verify**: The driver validates the request signature using your auto-configured secrets.
+4. **Process**: The driver normalizes the raw payload into a standard structure.
+5. **Dispatch**: Megamorph fires a standard Laravel Event with the normalized data.
+
+### CSRF Exemption
+
+Since webhooks are external `POST` requests, you must exclude the webhook route from Laravel's CSRF protection.
+
+**For Laravel 11 (`bootstrap/app.php`):**
+
+```php
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->validateCsrfTokens(except: [
+        'megamorph/webhook/*',
+    ]);
+})
+```
+
+**For Laravel 10 and below (`app/Http/Middleware/VerifyCsrfToken.php`):**
+
+```php
+protected $except = [
+    'megamorph/webhook/*',
+];
+```
+
 ## 🧹 Maintenance & Scalability
 
 Built for enterprise-grade performance:
@@ -412,6 +460,21 @@ Security is paramount in API integrations:
 - **Inbound Protection**: Secure gateway endpoints with middleware, rate limiting, or custom tokens to prevent unauthorized access.
 
 - **Compliance Ready**: Full audit trails support GDPR, PCI-DSS, and other regulations.
+
+## 🎮 Live Demo
+
+Want to see Megamorph in action before installing? We have set up a live Filament environment where you can experience the **API Playground** and **Log Inspection** features firsthand.
+
+**URL:** [https://v3.ianstudios.id](https://v3.ianstudios.id)
+
+### How to explore:
+
+1. **Log In:** Visit the URL above (demo credentials are typically provided on the login page).
+2. **Navigate:** Go to a **API Providers** to test your free API.
+3. **Inspect:** Open to the **Shadow Logs** section.
+4. **Analyze:** Click on a log entry to view the full request/response cycle, latency, and masked payloads handled by the metamorphic driver.
+
+---
 
 ## 💳 License & Terms
 
