@@ -1,6 +1,6 @@
 # Megamorph - The Universal Metamorphic API Bridge for Filament
 
-![MEGAMORPH](https://creator.ianstudios.id/storage/docs-images/01KG1YXEKX153YZH0141C5VC7F.png))
+![MEGAMORPH](https://creator.ianstudios.id/storage/docs-images/01KG1YXEKX153YZH0141C5VC7F.png)
 
 **Build integrations without code. Decouple your application logic from third-party vendor constraints with a powerful, metamorphic transformation layer.**
 
